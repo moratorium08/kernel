@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Gaussian Kernel</title>
+
+		<script src="index.js" charset="utf-8"></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<link rel="stylesheet" href="index.css">
+		<script src="https://code.jquery.com/jquery-2.2.3.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+		<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Gaussian Kernel</h1>
+			<p>以下の矩形の中の好きな場所に●と■を、あなたの思うルールで配置してGaussian Kernelに分類させてみましょう</p>
+			<div class="row">
+				<svg id="canvas"></svg>
+			</div>
+
+			<div class="form-group">
+				<label class="radio-inline">
+					<input type="radio" name="radio" value="circle" checked /> Group Circle
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="radio" value="rect"/> Group Rect
+				</label>
+				<button type="button" class="col-md-offset-1 btn btn-default" id="classify">classify</button>
+				<button type="button" class="col-md-offset-1 btn btn-default" id="reset">reset</button>
+			</div>
+		</div>
+	</body>
+</html>
