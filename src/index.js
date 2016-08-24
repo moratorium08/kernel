@@ -5,6 +5,34 @@ const rectPoints = [];
 const circlePoints = [];
 
 function setup(svg) {
+
+}
+
+function draw(svg) {
+	svg.selectAll('rect')
+		.remove();
+	svg.selectAll('circle')
+		.remove();
+
+	svg.selectAll('rect')
+		.data(rectPoints)
+		.enter()
+		.append('rect')
+		.attr('x', (d) => (d[0] - 3))
+		.attr('y', (d) => (d[1] -3))
+		.attr('width', 6)
+		.attr('height',6)
+		.attr('fill', 'lightgreen');
+
+	svg.selectAll('circle')
+		.data(circlePoints)
+		.enter()
+		.append('circle')
+		.attr('cx', (d) => (d[0] - 3))
+		.attr('cy', (d) => (d[1] -3))
+		.attr('r', 3)
+		.attr('fill', '#ed90da');
+
 }
 
 let state = 'circle'; // 'circle' or 'rect'
@@ -23,30 +51,7 @@ $(document).ready( () => {
 			console.log('invalid state');
 			return;
 		}
-		
-		svg.selectAll('rect')
-			.remove();
-		svg.selectAll('circle')
-			.remove();
-
-		svg.selectAll('rect')
-			.data(rectPoints)
-			.enter()
-			.append('rect')
-			.attr('x', (d) => (d[0] - 3))
-			.attr('y', (d) => (d[1] -3))
-			.attr('width', 6)
-			.attr('height',6)
-			.attr('fill', 'lightgreen');
-
-		svg.selectAll('circle')
-			.data(circlePoints)
-			.enter()
-			.append('circle')
-			.attr('cx', (d) => (d[0] - 3))
-			.attr('cy', (d) => (d[1] -3))
-			.attr('r', 6)
-			.attr('fill', '#ed90da');
+		draw(svg);
 	});
 
 	$('#classify').click( () => {
@@ -62,8 +67,5 @@ $(document).ready( () => {
 	});
 
 });
-
-
-
 
 
