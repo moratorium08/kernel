@@ -26325,12 +26325,13 @@ function draw(svg) {
 }
 
 let state = 'circle'; // 'circle' or 'rect'
+let computing = false;
 $(document).ready(() => {
-
 	const svg = d3.select('#canvas').style('background-color', '#223344');
 	setup(svg);
 
 	$('#canvas').click(e => {
+		if (computing) return; // if svm is working, unable to push new points.
 		const offset = $('#canvas').offset();
 		const mousePos = [e.pageX - offset.left, e.pageY - offset.top];
 		if (state === 'circle') circlePoints.push(mousePos);else if (state === 'rect') rectPoints.push(mousePos);else {
@@ -26341,6 +26342,11 @@ $(document).ready(() => {
 	});
 
 	$('#classify').click(() => {
+		// start computing
+		computing = true;
+		$("#reset").prop('disabled', true);
+		$("#classify").prop('disabled', true);
+
 		const targets = circlePoints.map(() => 1).concat(rectPoints.map(() => -1));
 		const svm = new SVM(circlePoints.map(x => [x[0] / 100, x[1] / 100]).concat(rectPoints.map(x => [x[0] / 100, x[1] / 100])), targets);
 		svm.learn();
@@ -26358,18 +26364,21 @@ $(document).ready(() => {
 				const py = sizeY * j;
 				const y = svm.presume([px / 100, py / 100]);
 				tiles.push([px, py, sign(y)]);
-				//console.log(sign(y));
 			}
 		}
 
-		console.log(tiles);
-
 		svg.selectAll("rect").data(tiles).enter().append("rect").attr("x", x => x[0]).attr("y", x => x[1]).attr("width", sizeX).attr("height", sizeY).attr("fill", x => x[2] > 0 ? "pink" : "springgreen").attr("opacity", 0.3);
+
+		// finish computing
+		computing = false;
+		$("#reset").prop('disabled', false);
+		$("#classify").prop('disabled', false);
 	});
 
 	$('#reset').click(() => {
 		rectPoints.length = 0;
 		circlePoints.length = 0;
+		tiles.length = 0;
 		draw(svg);
 	});
 
@@ -26407,30 +26416,21 @@ class SVM {
 		return this.data.reduce((prev, curr, idx) => prev + this.lagrangeMultipliers[idx] * this.target[idx] * this.kernel(data, curr), 0) - this.bias;
 	}
 
-	_getIllegalValue() {
+	_getIllegalValue(examineAll) {
 		const first = this.index;
 		const regularize = x => {
 			if (x >= this.data.length) return x - this.data.length;
 			return x;
 		};
 		for (let i = 0; i < this.data.length; i++) {
+			if (!examineAll && Math.abs(this.lagrangeMultipliers[i]) < eps && Math.abs(this.lagrangeMultipliers[i] - this.regularization) < eps) continue;
 			this.index = regularize(i + first);
-			// ここ0<a_i<Cから調べた方がいいらしいのでつらい
-			/*const t_mul_y = this.target[this.index] * this.presume(this.data[this.index]);
-   if (Math.abs(this.lagrangeMultipliers[this.index]) < eps && t_mul_y < 1) 
-   	return this.index++;
-   else if (Math.abs(this.regularization - this.lagrangeMultipliers[this.index]) < 0 
-   		&& t_mul_y > 1 ) 
-   	return this.index++;
-   else if (Math.abs(t_mul_y - 1) > eps) 
-   	return this.index++; */
 			const y2 = this.target[this.index];
 			const alph2 = this.lagrangeMultipliers[this.index];
 			const E2 = this.presume(this.data[this.index]) - y2;
 			const r2 = E2 * y2;
 			const C = this.regularization;
 			if (r2 < -eps && alph2 < C || r2 > eps && alph2 > 0) {
-
 				return this.index++;
 			}
 		}
@@ -26474,13 +26474,19 @@ class SVM {
 
 	learn() {
 		let iteration = 0;
+		let examineAll = false;
 		while (1) {
 			if (iteration++ > MAX_ITERATION) {
 				console.log("Over the max iteration");
 				break;
 			}
-			const i1 = this._getIllegalValue();
-			if (i1 == -1) break;
+			const i1 = this._getIllegalValue(examineAll);
+			if (i1 == -1) {
+				if (!examineAll) {
+					examineAll = true;
+					continue;
+				} else break;
+			}
 			let i2 = i1;
 			while (i1 == i2) i2 = Math.floor(Math.random() * this.data.length);
 			this._update(i2, i1);

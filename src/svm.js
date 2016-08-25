@@ -32,30 +32,22 @@ class SVM {
 						this.kernel(data, curr)), 0) - this.bias;
 	}
 
-	_getIllegalValue() {
+	_getIllegalValue(examineAll) {
 		const first = this.index;
 		const regularize = (x) => {
 			if (x >= this.data.length) return x - this.data.length;
 			return x;
 		}
 		for (let i = 0; i<this.data.length; i++){
+			if (!examineAll && Math.abs(this.lagrangeMultipliers[i]) < eps 
+					&& Math.abs(this.lagrangeMultipliers[i]-this.regularization) < eps) continue;
 			this.index = regularize(i+first);
-			// ここ0<a_i<Cから調べた方がいいらしいのでつらい
-			/*const t_mul_y = this.target[this.index] * this.presume(this.data[this.index]);
-			if (Math.abs(this.lagrangeMultipliers[this.index]) < eps && t_mul_y < 1) 
-				return this.index++;
-			else if (Math.abs(this.regularization - this.lagrangeMultipliers[this.index]) < 0 
-					&& t_mul_y > 1 ) 
-				return this.index++;
-			else if (Math.abs(t_mul_y - 1) > eps) 
-				return this.index++; */
 			const y2 = this.target[this.index];
 			const alph2 = this.lagrangeMultipliers[this.index];
 			const E2 = this.presume(this.data[this.index]) - y2;
 			const r2 = E2*y2;
 			const C = this.regularization;
 			if ((r2 < -eps && alph2 < C) || (r2 > eps && alph2 > 0)){
-
 				return this.index++;
 			} 
 
@@ -106,13 +98,21 @@ class SVM {
 
 	learn(){
 		let iteration = 0;
+		let examineAll = false;
 		while (1){
 			if (iteration++ > MAX_ITERATION) {
 				console.log("Over the max iteration");
 				break;
 			}
-			const i1 = this._getIllegalValue();
-			if (i1 == -1 ) break;
+			const i1 = this._getIllegalValue(examineAll);
+			if (i1 == -1) {
+				if (!examineAll) {
+					examineAll = true;
+					continue;
+				}
+				else 
+					break;
+			}
 			let i2 = i1;
 			while (i1==i2) 
 				i2 = Math.floor(Math.random() * this.data.length);
