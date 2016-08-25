@@ -26379,10 +26379,9 @@ $(document).ready(() => {
 });
 
 },{"./svm":4,"d3":1,"jquery":2}],4:[function(require,module,exports){
-
 // this svm is only for 2 dimensional data.
 const eps = 0.001;
-const MAX_ITERATION = 10000000;
+const MAX_ITERATION = 1000000;
 class SVM {
 	// data structure:
 	// data = [ [x11, x12], [x21, x22] ... ]
@@ -26430,7 +26429,10 @@ class SVM {
 			const E2 = this.presume(this.data[this.index]) - y2;
 			const r2 = E2 * y2;
 			const C = this.regularization;
-			if (r2 < -eps && alph2 < C || r2 > eps && alph2 > 0) return this.index++;
+			if (r2 < -eps && alph2 < C || r2 > eps && alph2 > 0) {
+
+				return this.index++;
+			}
 		}
 		return -1;
 	}
@@ -26467,7 +26469,7 @@ class SVM {
 		const b1_new = E1 + t1 * (a1_new - a1) * this.kernel(d1, d1) + t2 * (a2_new_unclipped - a2) * this.kernel(d1, d2) + this.bias;
 		const b2_new = E2 + t1 * (a1_new - a1) * this.kernel(d1, d2) + t2 * (a2_new_unclipped - a2) * this.kernel(d2, d2) + this.bias;
 
-		if (0 < a1_new && a1_new < this.regularization) this.bias = b1_new;else if (0 < a2_new && a2_new < this.regularization) this.bias = b2_new;else this.bias = (b1_new + b2_new) / 2; // if b1_new and b2_new are both valid.
+		if (0 < a1_new && a1_new < this.regularization) this.bias = b1_new;else if (0 < a2_new && a2_new < this.regularization) this.bias = b2_new;else this.bias = (b1_new + b2_new) / 2;
 	}
 
 	learn() {
@@ -26481,7 +26483,7 @@ class SVM {
 			if (i1 == -1) break;
 			let i2 = i1;
 			while (i1 == i2) i2 = Math.floor(Math.random() * this.data.length);
-			this._update(i1, i2);
+			this._update(i2, i1);
 		}
 	}
 
