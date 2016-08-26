@@ -1,6 +1,6 @@
-$ = require('jquery');
-d3 = require('d3');
-SVM = require('./svm');
+const $ = require('jquery');
+const d3 = require('d3');
+const SVM = require('./svm');
 
 
 const rectPoints = [];
