@@ -26304,98 +26304,137 @@ return jQuery;
 } );
 
 },{}],3:[function(require,module,exports){
-$ = require('jquery');
-d3 = require('d3');
-SVM = require('./svm');
+'use strict';
 
-const rectPoints = [];
-const circlePoints = [];
-const tiles = [];
-const tileSize = 100;
+var $ = require('jquery');
+var d3 = require('d3');
+var SVM = require('./svm');
 
-function setup(svg) {}
+var rectPoints = [];
+var circlePoints = [];
+var tiles = [];
+var tileSize = 100;
 
-function draw(svg) {
+var draw = function draw(svg) {
 	svg.selectAll('rect').remove();
 	svg.selectAll('circle').remove();
 
-	svg.selectAll('rect').data(rectPoints).enter().append('rect').attr('x', d => d[0] - 3).attr('y', d => d[1] - 3).attr('width', 6).attr('height', 6).attr('fill', 'lightgreen');
+	svg.selectAll('rect').data(rectPoints).enter().append('rect').attr('x', function (d) {
+		return d[0] - 3;
+	}).attr('y', function (d) {
+		return d[1] - 3;
+	}).attr('width', 6).attr('height', 6).attr('fill', 'lightgreen');
 
-	svg.selectAll('circle').data(circlePoints).enter().append('circle').attr('cx', d => d[0] - 3).attr('cy', d => d[1] - 3).attr('r', 3).attr('fill', '#ed90da');
-}
+	svg.selectAll('circle').data(circlePoints).enter().append('circle').attr('cx', function (d) {
+		return d[0] - 3;
+	}).attr('cy', function (d) {
+		return d[1] - 3;
+	}).attr('r', 3).attr('fill', '#ed90da');
+};
 
-let state = 'circle'; // 'circle' or 'rect'
-let computing = false;
-$(document).ready(() => {
-	const svg = d3.select('#canvas').style('background-color', '#223344');
-	setup(svg);
+var state = 'circle'; // 'circle' or 'rect'
+var computing = false;
+$(document).ready(function () {
+	var svg = d3.select('#canvas').style('background-color', '#223344');
 
-	$('#canvas').click(e => {
-		if (computing) return; // if svm is working, unable to push new points.
-		const offset = $('#canvas').offset();
-		const mousePos = [e.pageX - offset.left, e.pageY - offset.top];
-		if (state === 'circle') circlePoints.push(mousePos);else if (state === 'rect') rectPoints.push(mousePos);else {
-			console.log('invalid state');
+	$('#canvas').click(function (e) {
+		if (computing) {
+			return; // if svm is working, unable to push new points.
+		}
+		var offset = $('#canvas').offset();
+		var mousePos = [e.pageX - offset.left, e.pageY - offset.top];
+		if (state === 'circle') {
+			circlePoints.push(mousePos);
+		} else if (state === 'rect') {
+			rectPoints.push(mousePos);
+		} else {
 			return;
 		}
 		draw(svg);
 	});
 
-	$('#classify').click(() => {
+	$('#classify').click(function () {
 		// start computing
 		computing = true;
-		$("#reset").prop('disabled', true);
-		$("#classify").prop('disabled', true);
+		$('#reset').prop('disabled', true);
+		$('#classify').prop('disabled', true);
 
-		const targets = circlePoints.map(() => 1).concat(rectPoints.map(() => -1));
-		const svm = new SVM(circlePoints.map(x => [x[0] / 100, x[1] / 100]).concat(rectPoints.map(x => [x[0] / 100, x[1] / 100])), targets);
+		var targets = circlePoints.map(function () {
+			return 1;
+		}).concat(rectPoints.map(function () {
+			return -1;
+		}));
+		var svm = new SVM(circlePoints.map(function (x) {
+			return [x[0] / 100, x[1] / 100];
+		}).concat(rectPoints.map(function (x) {
+			return [x[0] / 100, x[1] / 100];
+		})), targets);
 		svm.learn();
-		const width = $('#canvas').width();
-		const height = $('#canvas').height();
+		var width = $('#canvas').width();
+		var height = $('#canvas').height();
 
-		const sizeX = width / tileSize;
-		const sizeY = height / tileSize;
+		var sizeX = width / tileSize;
+		var sizeY = height / tileSize;
 
-		const sign = x => x > 0 ? 1 : -1;
+		var sign = function sign(x) {
+			return x > 0 ? 1 : -1;
+		};
 
-		for (let i = 0; i < tileSize; i++) {
-			for (let j = 0; j < tileSize; j++) {
-				const px = sizeX * i;
-				const py = sizeY * j;
-				const y = svm.presume([px / 100, py / 100]);
+		for (var i = 0; i < tileSize; i++) {
+			for (var j = 0; j < tileSize; j++) {
+				var px = sizeX * i;
+				var py = sizeY * j;
+				var y = svm.presume([px / 100, py / 100]);
 				tiles.push([px, py, sign(y)]);
 			}
 		}
 
-		svg.selectAll("rect").data(tiles).enter().append("rect").attr("x", x => x[0]).attr("y", x => x[1]).attr("width", sizeX).attr("height", sizeY).attr("fill", x => x[2] > 0 ? "pink" : "springgreen").attr("opacity", 0.3);
+		svg.selectAll('rect').data(tiles).enter().append('rect').attr('x', function (x) {
+			return x[0];
+		}).attr('y', function (x) {
+			return x[1];
+		}).attr('width', sizeX).attr('height', sizeY).attr('fill', function (x) {
+			return x[2] > 0 ? 'pink' : 'springgreen';
+		}).attr('opacity', 0.3);
 
 		// finish computing
 		computing = false;
-		$("#reset").prop('disabled', false);
-		$("#classify").prop('disabled', false);
+		$('#reset').prop('disabled', false);
+		$('#classify').prop('disabled', false);
 	});
 
-	$('#reset').click(() => {
+	$('#reset').click(function () {
 		rectPoints.length = 0;
 		circlePoints.length = 0;
 		tiles.length = 0;
 		draw(svg);
 	});
 
-	$("input[name='radio']:radio").change(() => {
+	$('input[name="radio"]:radio').change(function () {
 		state = $('input[name=radio]:checked').val();
 	});
 });
 
 },{"./svm":4,"d3":1,"jquery":2}],4:[function(require,module,exports){
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 // this svm is only for 2 dimensional data.
-const eps = 0.001;
-const MAX_ITERATION = 1000000;
-class SVM {
+var eps = 0.001;
+var MAX_ITERATION = 1000000;
+
+var SVM = function () {
 	// data structure:
 	// data = [ [x11, x12], [x21, x22] ... ]
 	// target = [t1, t2, t3, ... ]
-	constructor(data, target, regularization = 1.0) {
+	function SVM(data, target) {
+		var regularization = arguments.length <= 2 || arguments[2] === undefined ? 1.0 : arguments[2];
+
+		_classCallCheck(this, SVM);
+
 		this.data = data;
 		this.target = target;
 		this.index = 0;
@@ -26405,119 +26444,139 @@ class SVM {
 	}
 
 	// gaussian kernel
-	kernel(x1, x2, sigma = 1.0) {
-		return Math.exp(-(Math.pow(x1[0] - x2[0], 2) + Math.pow(x1[1] - x2[1], 2)) / 2 / Math.pow(sigma, 2));
-	}
 
-	// data structure:
-	// data = [x1, x2] (2-dimentional)
-	presume(data) {
-		if (data.length !== 2) {
-			throw new Error('given data is not 2 dimentional');
+
+	_createClass(SVM, [{
+		key: 'kernel',
+		value: function kernel(x1, x2) {
+			var sigma = arguments.length <= 2 || arguments[2] === undefined ? 1.0 : arguments[2];
+
+			return Math.exp(-(Math.pow(x1[0] - x2[0], 2) + Math.pow(x1[1] - x2[1], 2)) / 2 / Math.pow(sigma, 2));
 		}
-		return this.data.reduce((prev, curr, idx) => prev + this.lagrangeMultipliers[idx] * this.target[idx] * this.kernel(data, curr), 0) - this.bias;
-	}
 
-	getIllegalValue(examineAll) {
-		const first = this.index;
-		const regularize = x => {
-			if (x >= this.data.length) {
-				return x - this.data.length;
+		// data structure:
+		// data = [x1, x2] (2-dimentional)
+
+	}, {
+		key: 'presume',
+		value: function presume(data) {
+			var _this = this;
+
+			if (data.length !== 2) {
+				throw new Error('given data is not 2 dimentional');
 			}
-			return x;
-		};
-		for (let i = 0; i < this.data.length; i++) {
-			if (!examineAll && Math.abs(this.lagrangeMultipliers[i]) < eps && Math.abs(this.lagrangeMultipliers[i] - this.regularization) < eps) {
-				continue;
-			}
-			this.index = regularize(i + first);
-			const y2 = this.target[this.index];
-			const alph2 = this.lagrangeMultipliers[this.index];
-			const E2 = this.presume(this.data[this.index]) - y2;
-			const r2 = E2 * y2;
-			const C = this.regularization;
-			if (r2 < -eps && alph2 < C || r2 > eps && alph2 > 0) {
-				return this.index++;
-			}
+			return this.data.reduce(function (prev, curr, idx) {
+				return prev + _this.lagrangeMultipliers[idx] * _this.target[idx] * _this.kernel(data, curr);
+			}, 0) - this.bias;
 		}
-		return -1;
-	}
+	}, {
+		key: 'getIllegalValue',
+		value: function getIllegalValue(examineAll) {
+			var _this2 = this;
 
-	update(i1, i2) {
-		let L = -1;
-		let H = -1;
-		const a1 = this.lagrangeMultipliers[i1];
-		const a2 = this.lagrangeMultipliers[i2];
-
-		if (this.target[i1] === this.target[i2]) {
-			L = Math.max(0, a1 + a2 - this.regularization);
-			H = Math.min(this.regularization, a1 + a2);
-		} else {
-			L = Math.max(0, a2 - a1);
-			H = Math.min(this.regularization, this.regularization + a2 - a1);
-		}
-
-		const d1 = this.data[i1];
-		const d2 = this.data[i2];
-		const t1 = this.target[i1];
-		const t2 = this.target[i2];
-		const E1 = this.presume(d1) - t1;
-		const E2 = this.presume(d2) - t2;
-		const a2NewUnclipped = (a2 + t2 * (E1 - E2)) / (this.kernel(d1, d1) - 2 * this.kernel(d1, d2) + this.kernel(d2, d2));
-		let a2New = a2NewUnclipped;
-		if (a2NewUnclipped > H) {
-			a2New = H;
-		} else if (a2NewUnclipped < L) {
-			a2New = L;
-		}
-		if (a2New < 1e-8) {
-			a2New = 0;
-		}
-		if (a2New > this.regularization - 1e-8) {
-			a2New = this.regularization;
-		}
-		const a1New = a1 + t1 * t2 * (a2 - a2New);
-
-		this.lagrangeMultipliers[i1] = a1New;
-		this.lagrangeMultipliers[i2] = a2New;
-		// update bias parameter (12.9),(12,10)式
-		const b1New = E1 + t1 * (a1New - a1) * this.kernel(d1, d1) + t2 * (a2NewUnclipped - a2) * this.kernel(d1, d2) + this.bias;
-		const b2New = E2 + t1 * (a1New - a1) * this.kernel(d1, d2) + t2 * (a2NewUnclipped - a2) * this.kernel(d2, d2) + this.bias;
-
-		if (0 < a1New && a1New < this.regularization) {
-			this.bias = b1New;
-		} else if (0 < a2New && a2New < this.regularization) {
-			this.bias = b2New;
-		} else {
-			this.bias = (b1New + b2New) / 2;
-		}
-	}
-
-	learn() {
-		let iteration = 0;
-		let examineAll = false;
-		for (;;) {
-			if (iteration++ > MAX_ITERATION) {
-				break;
-			}
-			const i1 = this.getIllegalValue(examineAll);
-			if (i1 === -1) {
-				if (examineAll) {
-					break;
-				} else {
-					examineAll = true;
+			var first = this.index;
+			var regularize = function regularize(x) {
+				if (x >= _this2.data.length) {
+					return x - _this2.data.length;
+				}
+				return x;
+			};
+			for (var i = 0; i < this.data.length; i++) {
+				if (!examineAll && Math.abs(this.lagrangeMultipliers[i]) < eps && Math.abs(this.lagrangeMultipliers[i] - this.regularization) < eps) {
 					continue;
 				}
+				this.index = regularize(i + first);
+				var y2 = this.target[this.index];
+				var alph2 = this.lagrangeMultipliers[this.index];
+				var E2 = this.presume(this.data[this.index]) - y2;
+				var r2 = E2 * y2;
+				var C = this.regularization;
+				if (r2 < -eps && alph2 < C || r2 > eps && alph2 > 0) {
+					return this.index++;
+				}
 			}
-			let i2 = i1;
-			while (i1 === i2) {
-				i2 = Math.floor(Math.random() * this.data.length);
-			}
-			this.update(i2, i1);
+			return -1;
 		}
-	}
+	}, {
+		key: 'update',
+		value: function update(i1, i2) {
+			var L = -1;
+			var H = -1;
+			var a1 = this.lagrangeMultipliers[i1];
+			var a2 = this.lagrangeMultipliers[i2];
 
-}
+			if (this.target[i1] === this.target[i2]) {
+				L = Math.max(0, a1 + a2 - this.regularization);
+				H = Math.min(this.regularization, a1 + a2);
+			} else {
+				L = Math.max(0, a2 - a1);
+				H = Math.min(this.regularization, this.regularization + a2 - a1);
+			}
+
+			var d1 = this.data[i1];
+			var d2 = this.data[i2];
+			var t1 = this.target[i1];
+			var t2 = this.target[i2];
+			var E1 = this.presume(d1) - t1;
+			var E2 = this.presume(d2) - t2;
+			var a2NewUnclipped = (a2 + t2 * (E1 - E2)) / (this.kernel(d1, d1) - 2 * this.kernel(d1, d2) + this.kernel(d2, d2));
+			var a2New = a2NewUnclipped;
+			if (a2NewUnclipped > H) {
+				a2New = H;
+			} else if (a2NewUnclipped < L) {
+				a2New = L;
+			}
+			if (a2New < 1e-8) {
+				a2New = 0;
+			}
+			if (a2New > this.regularization - 1e-8) {
+				a2New = this.regularization;
+			}
+			var a1New = a1 + t1 * t2 * (a2 - a2New);
+
+			this.lagrangeMultipliers[i1] = a1New;
+			this.lagrangeMultipliers[i2] = a2New;
+			// update bias parameter (12.9),(12,10)式
+			var b1New = E1 + t1 * (a1New - a1) * this.kernel(d1, d1) + t2 * (a2NewUnclipped - a2) * this.kernel(d1, d2) + this.bias;
+			var b2New = E2 + t1 * (a1New - a1) * this.kernel(d1, d2) + t2 * (a2NewUnclipped - a2) * this.kernel(d2, d2) + this.bias;
+
+			if (0 < a1New && a1New < this.regularization) {
+				this.bias = b1New;
+			} else if (0 < a2New && a2New < this.regularization) {
+				this.bias = b2New;
+			} else {
+				this.bias = (b1New + b2New) / 2;
+			}
+		}
+	}, {
+		key: 'learn',
+		value: function learn() {
+			var iteration = 0;
+			var examineAll = false;
+			for (;;) {
+				if (iteration++ > MAX_ITERATION) {
+					break;
+				}
+				var i1 = this.getIllegalValue(examineAll);
+				if (i1 === -1) {
+					if (examineAll) {
+						break;
+					} else {
+						examineAll = true;
+						continue;
+					}
+				}
+				var i2 = i1;
+				while (i1 === i2) {
+					i2 = Math.floor(Math.random() * this.data.length);
+				}
+				this.update(i2, i1);
+			}
+		}
+	}]);
+
+	return SVM;
+}();
 
 module.exports = SVM;
 
